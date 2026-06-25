@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Antecipação — LUMIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --navy-900: #0a1a3a;
+      --navy-800: #0f2654;
+      --navy-700: #152d5e;
+      --blue-600: #1e4fa0;
+      --blue-500: #2563eb;
+      --blue-400: #3b82f6;
+      --blue-300: #60a5fa;
+      --blue-200: #93c5fd;
+      --blue-100: #bfdbfe;
+      --blue-light: #d4e6f9;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== FULL PAGE LAYOUT ===== */
+    .page {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+      /* Gradient from dark navy to light blue (not white) */
+      background: linear-gradient(to right, #071a3f 0%, #0c2456 20%, #133a7a 35%, #1d56a8 48%, #3478c8 58%, #5a9ad8 68%, #89bbe6 78%, #a8d0f0 88%, #c2e0f7 100%);
+    }
+
+    /* ===== LEFT PANEL (Brand) ===== */
+    .left-panel {
+      flex: 0 0 42%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 25% 35%, rgba(37, 99, 235, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 65% 75%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .left-content {
+      position: relative;
+      z-index: 2;
+      max-width: 420px;
+    }
+
+    .logo {
+      margin-bottom: 40px;
+    }
+
+    .logo svg {
+      height: 36px;
+      width: auto;
+    }
+
+    .decorative-line {
+      width: 44px;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(147, 197, 253, 0.9), rgba(147, 197, 253, 0.2));
+      border-radius: 2px;
+      margin-bottom: 26px;
+    }
+
+    .left-content h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+
+    .left-content .subtitle {
+      font-size: clamp(14px, 1.5vw, 17px);
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+      font-weight: 400;
+      max-width: 360px;
+      margin-bottom: 20px;
+    }
+
+    .left-content .subtitle strong {
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: 600;
+    }
+
+    .left-content .site-link {
+      display: inline-block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .left-content .site-link:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* ===== RIGHT PANEL (Simulator) ===== */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 40px;
+      position: relative;
+    }
+
+    /* ===== SIMULATOR CARD — 3D effect ===== */
+    .simulator-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--white);
+      border-radius: 18px;
+      padding: 36px 34px;
+      position: relative;
+      /* 3D layered shadow effect */
+      box-shadow:
+        0 2px 4px rgba(10, 26, 58, 0.04),
+        0 6px 12px rgba(10, 26, 58, 0.06),
+        0 14px 28px rgba(10, 26, 58, 0.08),
+        0 30px 60px rgba(10, 26, 58, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      /* Subtle 3D transform */
+      transform: perspective(1200px) rotateY(-1.5deg) rotateX(0.5deg);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .simulator-card:hover {
+      transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+      box-shadow:
+        0 2px 4px rgba(10, 26, 58, 0.03),
+        0 8px 16px rgba(10, 26, 58, 0.06),
+        0 20px 40px rgba(10, 26, 58, 0.09),
+        0 40px 80px rgba(10, 26, 58, 0.12);
+    }
+
+    /* Subtle inner glow for depth */
+    .simulator-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.6) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 3px;
+      position: relative;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-bottom: 26px;
+      position: relative;
+    }
+
+    /* ===== FORM ===== */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .form-label-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .form-hint {
+      font-size: 10.5px;
+      color: var(--gray-400);
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-400);
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--gray-800);
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      border-color: var(--blue-400);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+    }
+
+    .form-input::placeholder {
+      color: var(--gray-300);
+      font-weight: 400;
+    }
+
+    .form-input.has-prefix {
+      padding-left: 40px;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-primary {
+      width: 100%;
+      height: 46px;
+      background: var(--navy-900);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 6px;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      position: relative;
+    }
+
+    .btn-primary:hover {
+      background: #061328;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px -4px rgba(10, 26, 58, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* ===== RESULTS ===== */
+    .results-section {
+      margin-top: 18px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+      max-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .results-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      max-height: 280px;
+    }
+
+    .results-divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin-bottom: 14px;
+    }
+
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .result-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      border-radius: 10px;
+      background: var(--gray-50);
+    }
+
+    .result-item.discount {
+      background: #fef2f2;
+    }
+
+    .result-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 3px;
+    }
+
+    .result-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .result-item.discount .result-value {
+      color: #dc2626;
+    }
+
+    /* Highlight */
+    .result-highlight {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1.5px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 16px 14px;
+      text-align: center;
+    }
+
+    .result-highlight .highlight-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #16a34a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+
+    .result-highlight .highlight-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #15803d;
+      letter-spacing: -0.5px;
+    }
+
+    .result-highlight .highlight-sub {
+      font-size: 11px;
+      color: #4ade80;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .left-panel {
+        flex: 0 0 38%;
+        padding: 48px 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      html, body {
+        height: auto;
+      }
+
+      .page {
+        flex-direction: column;
+        min-height: 100vh;
+        background: linear-gradient(to bottom, #071a3f 0%, #0c2456 15%, #133a7a 28%, #1d56a8 38%, #3478c8 46%, #5a9ad8 54%, #89bbe6 64%, #a8d0f0 76%, #c2e0f7 100%);
+      }
+
+      .left-panel {
+        flex: none;
+        padding: 40px 24px 36px;
+        text-align: center;
+        align-items: center;
+      }
+
+      .left-content {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .left-content h1 {
+        font-size: 28px;
+        text-align: center;
+      }
+
+      .left-content .subtitle {
+        text-align: center;
+        font-size: 15px;
+      }
+
+      .right-panel {
+        flex: none;
+        padding: 0 16px 40px;
+      }
+
+      .simulator-card {
+        max-width: 100%;
+        padding: 28px 22px;
+        transform: perspective(1200px) rotateY(0deg) rotateX(1deg);
+      }
+
+      .simulator-card:hover {
+        transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .left-panel {
+        padding: 32px 20px 28px;
+      }
+
+      .left-content h1 {
+        font-size: 24px;
+      }
+
+      .logo svg {
+        height: 28px;
+      }
+
+      .decorative-line {
+        margin-bottom: 20px;
+      }
+
+      .simulator-card {
+        padding: 24px 18px;
+        border-radius: 14px;
+      }
+
+      .card-title {
+        font-size: 17px;
+      }
+
+      .form-input {
+        height: 44px;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        height: 44px;
+        font-size: 13px;
+      }
+
+      .result-highlight .highlight-value {
+        font-size: 24px;
+      }
+
+      .results-row {
+        gap: 8px;
+      }
+
+      .result-item {
+        padding: 8px 6px;
+      }
+
+      .result-value {
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .left-content h1 {
+        font-size: 22px;
+      }
+
+      .left-content .subtitle {
+        font-size: 13px;
+      }
+
+      .simulator-card {
+        padding: 20px 16px;
+      }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.25s; opacity: 0; }
+    .delay-4 { animation-delay: 0.35s; opacity: 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="left-content">
+        <div class="logo animate-in">
+          <svg viewBox="0 0 200 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="36" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="42" fill="white" letter-spacing="2">LUMIA</text>
+          </svg>
+        </div>
+        <div class="decorative-line animate-in delay-1"></div>
+        <h1 class="animate-in delay-2">Simule sua<br>antecipação</h1>
+        <p class="subtitle animate-in delay-3">Descubra quanto você pode receber <strong>hoje</strong> pelos seus recebíveis.</p>
+        <a href="https://lumiapay.com.br" class="site-link animate-in delay-3" target="_blank">lumiapay.com.br</a>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="simulator-card animate-in delay-4">
+        <h2 class="card-title">Simulador de Antecipação</h2>
+        <p class="card-subtitle">Preencha os campos e veja o resultado em segundos.</p>
+
+        <form id="simulatorForm" onsubmit="return simulate(event)">
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="valorBruto">Valor bruto a antecipar</label>
+              <span class="form-hint">Simule o valor da nota individual</span>
+            </div>
+            <div class="input-wrapper">
+              <span class="input-prefix">R$</span>
+              <input
+                type="text"
+                id="valorBruto"
+                class="form-input has-prefix"
+                placeholder="10.000,00"
+                inputmode="decimal"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="dataRecebimento">Data prevista de recebimento</label>
+            </div>
+            <input
+              type="date"
+              id="dataRecebimento"
+              class="form-input"
+              required
+            >
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnSimular">
+            Simular antecipação
+          </button>
+        </form>
+
+        <!-- Results -->
+        <div class="results-section" id="results">
+          <div class="results-divider"></div>
+
+          <div class="results-row">
+            <div class="result-item">
+              <div class="result-label">Valor bruto</div>
+              <div class="result-value" id="resValorBruto">R$ 0</div>
+            </div>
+            <div class="result-item discount">
+              <div class="result-label">Desconto</div>
+              <div class="result-value" id="resDesconto">- R$ 0</div>
+            </div>
+          </div>
+
+          <div class="result-highlight">
+            <div class="highlight-label">Você recebe</div>
+            <div class="highlight-value" id="resLiquido">R$ 0</div>
+            <div class="highlight-sub" id="resDias"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== CONFIGURATION =====
+    // Taxa mensal de antecipação (mesma da plataforma)
+    const monthlyRate = 0.05;
+    // Taxa diária = taxa mensal / 30 (pro rata die)
+    const dailyRate = monthlyRate / 30;
+    // Piso mínimo: desconto nunca pode ser menor que minimumFeeRate% do valor bruto
+    const minimumFeeRate = 0.05;
+
+    function formatCurrency(value) {
+      return value.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Input mask
+    const valorInput = document.getElementById('valorBruto');
+    valorInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value === '') { e.target.value = ''; return; }
+      let numericValue = parseInt(value) / 100;
+      e.target.value = numericValue.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    });
+
+    // Min date
+    const dateInput = document.getElementById('dataRecebimento');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.min = tomorrow.toISOString().split('T')[0];
+
+    // Simulation
+    function simulate(event) {
+      event.preventDefault();
+
+      const rawValue = valorInput.value.replace(/\./g, '').replace(',', '.');
+      const valorBruto = parseFloat(rawValue);
+
+      if (isNaN(valorBruto) || valorBruto <= 0) { valorInput.focus(); return false; }
+
+      const dataRecebimento = new Date(dateInput.value + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const diffTime = dataRecebimento.getTime() - hoje.getTime();
+      const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (dias <= 0) { dateInput.focus(); return false; }
+
+      // Cálculo pro rata die
+      const descontoProrrata = valorBruto * dailyRate * dias;
+      // Piso mínimo (mesmo que poucos dias, desconto nunca é menor que minimumFeeRate%)
+      const descontoMinimo = valorBruto * minimumFeeRate;
+      // Aplica o maior entre pro rata e piso mínimo
+      const desconto = Math.max(descontoProrrata, descontoMinimo);
+      const valorLiquido = valorBruto - desconto;
+
+      document.getElementById('resValorBruto').textContent = formatCurrency(valorBruto);
+      document.getElementById('resDesconto').textContent = '- ' + formatCurrency(desconto);
+      document.getElementById('resLiquido').textContent = formatCurrency(valorLiquido);
+      document.getElementById('resDias').textContent = `Antecipação de ${dias} dia${dias > 1 ? 's' : ''}`;
+
+      document.getElementById('results').classList.add('visible');
+      return false;
+    }
+  </script>
+</body>
+</html>
